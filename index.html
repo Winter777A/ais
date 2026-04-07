@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Какой ты герой эпохи?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a1a;
+      --card: rgba(255,255,255,0.06);
+      --card-border: rgba(255,255,255,0.1);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --gradient-1: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+      --gradient-2: linear-gradient(135deg, #06b6d4, #3b82f6);
+      --accent: #f59e0b;
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    .bg-mesh {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-mesh .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.3;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .bg-mesh .orb:nth-child(1) {
+      width: 600px; height: 600px;
+      background: #6366f1;
+      top: -10%; left: -10%;
+      animation-delay: 0s;
+    }
+    .bg-mesh .orb:nth-child(2) {
+      width: 500px; height: 500px;
+      background: #ec4899;
+      top: 50%; right: -10%;
+      animation-delay: -7s;
+      animation-duration: 25s;
+    }
+    .bg-mesh .orb:nth-child(3) {
+      width: 400px; height: 400px;
+      background: #06b6d4;
+      bottom: -10%; left: 30%;
+      animation-delay: -14s;
+      animation-duration: 22s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(80px, -60px) scale(1.1); }
+      50% { transform: translate(-40px, 80px) scale(0.95); }
+      75% { transform: translate(60px, 40px) scale(1.05); }
+    }
+
+    .particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: rgba(255,255,255,0.08);
+      animation: drift linear infinite;
+      user-select: none;
+    }
+
+    @keyframes drift {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.6s ease;
+    }
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(60px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .start-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      gap: 30px;
+    }
+
+    .start-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--text-muted);
+      backdrop-filter: blur(10px);
+      letter-spacing: 0.5px;
+    }
+
+    .start-badge .dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    .start-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .start-subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 550px;
+      line-height: 1.7;
+    }
+
+    .start-epochs {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .epoch-chip {
+      padding: 8px 16px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--text-muted);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .epoch-chip:hover {
+      border-color: rgba(163,130,247,0.4);
+      color: var(--text);
+      transform: translateY(-2px);
+    }
+
+    .btn-start {
+      position: relative;
+      padding: 18px 48px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--gradient-1);
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .btn-start::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-1);
+      filter: blur(20px);
+      opacity: 0.5;
+      z-index: -1;
+      transition: opacity 0.3s;
+    }
+
+    .btn-start:hover {
+      transform: translateY(-3px) scale(1.03);
+    }
+    .btn-start:hover::before { opacity: 0.8; }
+    .btn-start:active { transform: translateY(0) scale(0.98); }
+
+    .quiz-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 0;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 100px;
+      margin-bottom: 50px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--gradient-1);
+      border-radius: 100px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .question-counter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    .question-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.4rem, 3.5vw, 2rem);
+      font-weight: 600;
+      line-height: 1.3;
+      margin-bottom: 40px;
+      animation: slideIn 0.5s ease;
+    }
+
+    .answers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      animation: fadeIn 0.5s ease 0.1s both;
+    }
+
+    @media (max-width: 600px) {
+      .answers-grid { grid-template-columns: 1fr; }
+    }
+
+    .answer-card {
+      position: relative;
+      padding: 20px 24px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .answer-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-1);
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 0;
+    }
+
+    .answer-card:hover {
+      border-color: rgba(163,130,247,0.5);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.15);
+    }
+
+    .answer-card:hover::before { opacity: 0.08; }
+
+    .answer-card.selected {
+      border-color: #a855f7;
+      box-shadow: 0 0 24px rgba(168,85,247,0.25);
+    }
+    .answer-card.selected::before { opacity: 0.12; }
+
+    .answer-letter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s;
+    }
+
+    .answer-card:hover .answer-letter,
+    .answer-card.selected .answer-letter {
+      background: rgba(168,85,247,0.2);
+      color: #c084fc;
+    }
+
+    .answer-text {
+      font-size: 15px;
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    .result-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    .result-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .result-card {
+      position: relative;
+      width: 100%;
+      max-width: 540px;
+      padding: 3px;
+      border-radius: 24px;
+      background: var(--gradient-1);
+      margin-bottom: 32px;
+      animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes cardAppear {
+      from { opacity: 0; transform: scale(0.8) rotateY(20deg); }
+      to { opacity: 1; transform: scale(1) rotateY(0); }
+    }
+
+    .result-card-inner {
+      background: #12122a;
+      border-radius: 22px;
+      padding: 48px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-card-inner::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: conic-gradient(from 0deg, transparent, rgba(168,85,247,0.1), transparent, rgba(236,72,153,0.1), transparent);
+      animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-emoji {
+      font-size: 64px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+      animation: bounceIn 0.6s ease 0.3s both;
+    }
+
+    @keyframes bounceIn {
+      from { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      to { transform: scale(1); }
+    }
+
+    .result-type {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 700;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .result-character {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .result-divider {
+      width: 60px;
+      height: 2px;
+      background: var(--gradient-1);
+      margin: 0 auto 24px;
+      border-radius: 2px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .result-description {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--text-muted);
+      position: relative;
+      z-index: 1;
+      text-align: left;
+      margin-bottom: 24px;
+    }
+
+    .result-traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 24px;
+    }
+
+    .trait-tag {
+      padding: 6px 14px;
+      background: rgba(168,85,247,0.12);
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 100px;
+      font-size: 13px;
+      color: #c084fc;
+    }
+
+    .result-quote {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-style: italic;
+      position: relative;
+      z-index: 1;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      border-left: 3px solid rgba(168,85,247,0.4);
+      text-align: left;
+    }
+
+    .result-source {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      display: block;
+      text-align: right;
+      font-style: normal;
+    }
+
+    .result-percentages {
+      width: 100%;
+      max-width: 540px;
+      margin-bottom: 36px;
+      animation: fadeIn 0.8s ease 0.4s both;
+    }
+
+    .result-percentages-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .percent-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .percent-emoji {
+      font-size: 24px;
+      width: 36px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .percent-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .percent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+
+    .percent-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .percent-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: #c084fc;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .percent-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .percent-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+      width: 0;
+    }
+
+    .percent-bar-fill.color-pechorin {
+      background: linear-gradient(90deg, #6366f1, #818cf8);
+    }
+    .percent-bar-fill.color-akakiy {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+    .percent-bar-fill.color-winston {
+      background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+
+    .percent-row.is-winner .percent-name {
+      color: #c084fc;
+    }
+    .percent-row.is-winner .percent-value {
+      color: #e879f9;
+      font-weight: 700;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-restart {
+      padding: 14px 36px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--gradient-1);
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-restart:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99,102,241,0.3);
+    }
+
+    .btn-about {
+      padding: 14px 36px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-about:hover {
+      border-color: rgba(163,130,247,0.4);
+      transform: translateY(-2px);
+    }
+
+    .about-screen {
+      padding: 60px 0 80px;
+    }
+
+    .about-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 100px;
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 48px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .about-back:hover {
+      color: var(--text);
+      border-color: rgba(163,130,247,0.4);
+    }
+
+    .about-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .about-intro {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      max-width: 650px;
+      margin-bottom: 60px;
+    }
+
+    .timeline-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 40px;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+      margin-bottom: 60px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #6366f1, #a855f7, #ec4899);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 40px;
+      animation: fadeIn 0.5s ease both;
+    }
+
+    .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+    .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+    .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+
+    .timeline-dot {
+      position: absolute;
+      left: -33px;
+      top: 4px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 3px solid;
+      background: var(--bg);
+    }
+
+    .timeline-item:nth-child(1) .timeline-dot { border-color: #6366f1; }
+    .timeline-item:nth-child(2) .timeline-dot { border-color: #a855f7; }
+    .timeline-item:nth-child(3) .timeline-dot { border-color: #ec4899; }
+
+    .timeline-era {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .timeline-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .timeline-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .compare-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+
+    .compare-card {
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .compare-card:hover {
+      border-color: rgba(163,130,247,0.4);
+      transform: translateY(-4px);
+    }
+
+    .compare-era {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .compare-pressure {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .compare-detail {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .author-section {
+      padding: 32px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+
+    .author-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .author-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .author-class {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .confetti-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      animation: confetti-fall linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 16px; }
+      .result-card-inner { padding: 32px 20px; }
+      .start-epochs { gap: 8px; }
+      .epoch-chip { font-size: 12px; padding: 6px 12px; }
+      .percent-name { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-mesh">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+  </div>
+
+  <div class="particles" id="particles"></div>
+  <div class="confetti-container" id="confetti"></div>
+
+  <div class="container">
+
+    <!-- ===== START SCREEN ===== -->
+    <div class="screen active" id="screen-start">
+      <div class="start-screen">
+        <div class="start-badge">
+          <span class="dot"></span>
+          Литературный тест
+        </div>
+
+        <h1 class="start-title">Какой ты<br>герой эпохи?</h1>
+
+        <p class="start-subtitle">
+          От «Лишнего человека» XIX века до героя антиутопии XX века — 
+          узнай, какой литературный архетип ближе всего к твоей личности.
+        </p>
+
+        <div class="start-epochs">
+          <span class="epoch-chip">📜 XIX век • Романтизм</span>
+          <span class="epoch-chip">🕯️ XIX век • Реализм</span>
+          <span class="epoch-chip">🔴 XX век • Антиутопия</span>
+          <span class="epoch-chip">7 вопросов</span>
+        </div>
+
+        <button class="btn-start" onclick="startQuiz()">
+          Начать тест →
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== QUIZ SCREEN ===== -->
+    <div class="screen" id="screen-quiz">
+      <div class="quiz-screen">
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+
+        <div class="question-counter" id="question-counter">01 / 07</div>
+        <h2 class="question-text" id="question-text"></h2>
+
+        <div class="answers-grid" id="answers-grid"></div>
+      </div>
+    </div>
+
+    <!-- ===== RESULT SCREEN ===== -->
+    <div class="screen" id="screen-result">
+      <div class="result-screen">
+        <div class="result-label">Твой архетип</div>
+
+        <div class="result-card">
+          <div class="result-card-inner">
+            <div class="result-emoji" id="result-emoji"></div>
+            <div class="result-type" id="result-type"></div>
+            <div class="result-character" id="result-character"></div>
+            <div class="result-divider"></div>
+            <div class="result-description" id="result-description"></div>
+            <div class="result-traits" id="result-traits"></div>
+            <div class="result-quote" id="result-quote"></div>
+          </div>
+        </div>
+
+        <!-- Percentage bars -->
+        <div class="result-percentages" id="result-percentages">
+          <div class="result-percentages-title">Распределение ответов</div>
+          <div id="percent-bars"></div>
+        </div>
+
+        <div class="result-actions">
+          <button class="btn-restart" onclick="restartQuiz()">Пройти заново ↻</button>
+          <button class="btn-about" onclick="showAbout()">О проекте →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ABOUT SCREEN ===== -->
+    <div class="screen" id="screen-about">
+      <div class="about-screen">
+        <button class="about-back" onclick="goBack()">← Назад</button>
+
+        <h2 class="about-title">Эволюция героя</h2>
+        <p class="about-intro">
+          Каждая эпоха создаёт свой тип личности — человека, который отражает 
+          главные конфликты и противоречия времени. Этот проект исследует, как менялся 
+          «герой» от классической русской литературы до антиутопий XX века.
+        </p>
+
+        <h3 class="timeline-title">Хронология архетипов</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-era">XIX ВЕК • РОМАНТИЗМ</div>
+            <div class="timeline-name">📜 Лишний человек — Печорин</div>
+            <div class="timeline-desc">
+              Умный, образованный, но не находящий себе места в обществе. 
+              Скучает, разрушает чужие судьбы, ищет смысл — и не находит. 
+              М.Ю. Лермонтов, «Герой нашего времени» (1840).
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-era">XIX ВЕК • РЕАЛИЗМ</div>
+            <div class="timeline-name">🕯️ Маленький человек — Акакий Акакиевич</div>
+            <div class="timeline-desc">
+              Тихий, незаметный чиновник, раздавленный системой. Его единственная 
+              мечта — новая шинель — становится символом человеческого достоинства. 
+              Н.В. Гоголь, «Шинель» (1842).
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-era">XX ВЕК • АНТИУТОПИЯ</div>
+            <div class="timeline-name">🔴 Герой антиутопии — Уинстон Смит</div>
+            <div class="timeline-desc">
+              Человек, пытающийся сохранить свободу мысли в тоталитарном мире. 
+              Его бунт обречён, но сам акт сопротивления делает его героем. 
+              Дж. Оруэлл, «1984» (1949).
+            </div>
+          </div>
+        </div>
+
+        <h3 class="compare-title">Давление на личность по эпохам</h3>
+        <div class="compare-grid">
+          <div class="compare-card">
+            <div class="compare-era">XIX ВЕК • РОМАНТИЗМ</div>
+            <div class="compare-pressure">Сословные рамки</div>
+            <div class="compare-detail">Жёсткая иерархия, невозможность самореализации, конфликт личности и общества</div>
+          </div>
+          <div class="compare-card">
+            <div class="compare-era">XIX ВЕК • РЕАЛИЗМ</div>
+            <div class="compare-pressure">Бюрократическая машина</div>
+            <div class="compare-detail">Обезличивание человека, унижение достоинства, бесправие маленького человека</div>
+          </div>
+          <div class="compare-card">
+            <div class="compare-era">XX ВЕК • АНТИУТОПИЯ</div>
+            <div class="compare-pressure">Тоталитаризм</div>
+            <div class="compare-detail">Контроль мысли, пропаганда, уничтожение индивидуальности, страх</div>
+          </div>
+        </div>
+
+        <div class="author-section">
+          <div class="author-label">АВТОР ПРОЕКТА</div>
+          <div class="author-name">Қуандық Айсамал</div>
+          <div class="author-class">11С класс • Проект по русской литературе • 2025</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+  /* ===== PARTICLES ===== */
+  const particleWords = [
+    'Печорин', 'Шинель', '1984', 'свобода', 'мечта', 'бунт', 'душа',
+    'судьба', 'время', 'герой', 'эпоха', 'мысль', 'тень',
+    'огонь', 'память', 'слово', 'путь', 'выбор', 'тишина'
+  ];
+
+  function createParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 15; i++) {
+      const p = document.createElement('span');
+      p.className = 'particle';
+      p.textContent = particleWords[Math.floor(Math.random() * particleWords.length)];
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (15 + Math.random() * 25) + 's';
+      p.style.animationDelay = (Math.random() * 20) + 's';
+      p.style.fontSize = (12 + Math.random() * 8) + 'px';
+      container.appendChild(p);
+    }
+  }
+  createParticles();
+
+  /* ===== QUESTIONS (3 types only: pechorin, akakiy, winston) ===== */
+  const questions = [
+    {
+      text: 'Ты оказываешься на вечеринке, где никого не знаешь. Что ты делаешь?',
+      answers: [
+        { text: 'Наблюдаю за людьми издалека, анализирую их поведение — мне это интереснее, чем общение', type: 'pechorin' },
+        { text: 'Стою в углу, надеясь, что никто не обратит на меня внимания', type: 'akakiy' },
+        { text: 'Ищу того, кто тоже чувствует фальшь этого мероприятия', type: 'winston' }
+      ]
+    },
+    {
+      text: 'Какая фраза лучше всего описывает твоё отношение к правилам?',
+      answers: [
+        { text: 'Правила существуют для тех, кому не хватает ума жить без них', type: 'pechorin' },
+        { text: 'Лучше следовать правилам — так безопаснее и спокойнее', type: 'akakiy' },
+        { text: 'Правила нужно ставить под сомнение, особенно если они несправедливы', type: 'winston' }
+      ]
+    },
+    {
+      text: 'У тебя появился свободный вечер. Как ты его проведёшь?',
+      answers: [
+        { text: 'Отправлюсь куда-нибудь спонтанно — мне нужны новые впечатления', type: 'pechorin' },
+        { text: 'Займусь любимым делом дома, в тишине и уюте', type: 'akakiy' },
+        { text: 'Прочитаю что-то, что заставит задуматься о мире вокруг', type: 'winston' }
+      ]
+    },
+    {
+      text: 'Тебе предлагают работу мечты, но нужно переехать в другой город. Твоя реакция?',
+      answers: [
+        { text: 'Наконец-то перемены! Еду не задумываясь', type: 'pechorin' },
+        { text: 'Это слишком рискованно... Лучше останусь на привычном месте', type: 'akakiy' },
+        { text: 'Зависит от того, смогу ли я там оставаться собой и жить по совести', type: 'winston' }
+      ]
+    },
+    {
+      text: 'Что тебя больше всего пугает?',
+      answers: [
+        { text: 'Скука и однообразие — жизнь без остроты ощущений', type: 'pechorin' },
+        { text: 'Потерять то немногое, что у меня есть', type: 'akakiy' },
+        { text: 'Мир, в котором людям запрещено думать свободно', type: 'winston' }
+      ]
+    },
+    {
+      text: 'Как ты относишься к несправедливости?',
+      answers: [
+        { text: 'Мир несправедлив по природе — я просто играю по его правилам лучше других', type: 'pechorin' },
+        { text: 'Терплю молча — что я могу изменить?', type: 'akakiy' },
+        { text: 'Не могу молчать — даже если мой голос ничего не изменит', type: 'winston' }
+      ]
+    },
+    {
+      text: 'Какую суперспособность ты бы выбрал(а)?',
+      answers: [
+        { text: 'Читать мысли — чтобы всегда быть на шаг впереди', type: 'pechorin' },
+        { text: 'Невидимость — чтобы никто не трогал', type: 'akakiy' },
+        { text: 'Стирать ложь — чтобы все видели правду', type: 'winston' }
+      ]
+    }
+  ];
+
+  /* ===== RESULTS DATA ===== */
+  const results = {
+    pechorin: {
+      emoji: '📜',
+      type: 'Лишний человек',
+      character: 'Григорий Печорин • «Герой нашего времени»',
+      description: 'Ты — человек с острым умом и глубокой натурой, но тебе тесно в рамках обыденности. Ты видишь людей насквозь, легко очаровываешь, но быстро теряешь интерес. Тебя влечёт к приключениям и переменам, но настоящее удовлетворение ускользает. Как Печорин, ты ищешь смысл — и этот поиск делает тебя одновременно сильным и одиноким.',
+      traits: ['Харизма', 'Скептицизм', 'Интеллект', 'Одиночество', 'Авантюризм'],
+      quote: '«Я был готов любить весь мир, — меня никто не понял: и я выучился ненавидеть.»',
+      source: 'М.Ю. Лермонтов, 1840'
+    },
+    akakiy: {
+      emoji: '🕯️',
+      type: 'Маленький человек',
+      character: 'Акакий Акакиевич Башмачкин • «Шинель»',
+      description: 'Ты — человек, который находит красоту в простых вещах и не стремится к громким подвигам. Твоя сила — в постоянстве, терпении и преданности тому, что тебе дорого. Мир может не замечать тебя, но в этой тишине скрыта настоящая глубина. Как Акакий Акакиевич, ты напоминаешь нам, что каждый человек заслуживает уважения.',
+      traits: ['Скромность', 'Верность', 'Терпение', 'Чувствительность', 'Трудолюбие'],
+      quote: '«Оставьте меня, зачем вы меня обижаете?»',
+      source: 'Н.В. Гоголь, 1842'
+    },
+    winston: {
+      emoji: '🔴',
+      type: 'Герой антиутопии',
+      character: 'Уинстон Смит • «1984»',
+      description: 'Ты — человек, который не может смириться с ложью и несправедливостью. Даже когда весь мир говорит «чёрное — это белое», ты продолжаешь верить своим глазам. Твой бунт может быть тихим, но он настоящий. Как Уинстон Смит, ты знаешь, что свобода мысли — это последний рубеж, который нельзя сдавать.',
+      traits: ['Принципиальность', 'Смелость', 'Критическое мышление', 'Упрямство', 'Совесть'],
+      quote: '«Свобода — это возможность сказать, что дважды два — четыре. Если дозволено это, всё остальное отсюда следует.»',
+      source: 'Дж. Оруэлл, 1949'
+    }
+  };
+
+  /* ===== DISPLAY NAMES & COLORS FOR PERCENT BARS ===== */
+  const typeInfo = {
+    pechorin: { name: 'Лишний человек', emoji: '📜', colorClass: 'color-pechorin' },
+    akakiy:   { name: 'Маленький человек', emoji: '🕯️', colorClass: 'color-akakiy' },
+    winston:  { name: 'Герой антиутопии', emoji: '🔴', colorClass: 'color-winston' }
+  };
+
+  /* ===== STATE ===== */
+  let currentQuestion = 0;
+  let scores = { pechorin: 0, akakiy: 0, winston: 0 };
+  let previousScreen = 'screen-start';
+
+  /* ===== NAVIGATION ===== */
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const screen = document.getElementById(id);
+    screen.classList.add('active');
+    screen.style.animation = 'none';
+    screen.offsetHeight;
+    screen.style.animation = 'fadeIn 0.6s ease';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ===== QUIZ LOGIC ===== */
+  function startQuiz() {
+    currentQuestion = 0;
+    scores = { pechorin: 0, akakiy: 0, winston: 0 };
+    showScreen('screen-quiz');
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[currentQuestion];
+    const counter = document.getElementById('question-counter');
+    const text = document.getElementById('question-text');
+    const grid = document.getElementById('answers-grid');
+    const fill = document.getElementById('progress-fill');
+
+    /* FIX: Remove the 'locked' class so buttons are clickable on the new question */
+    grid.classList.remove('locked');
+
+    counter.textContent = String(currentQuestion + 1).padStart(2, '0') + ' / 07';
+    fill.style.width = ((currentQuestion) / questions.length * 100) + '%';
+
+    text.textContent = q.text;
+    text.style.animation = 'none';
+    text.offsetHeight;
+    text.style.animation = 'slideIn 0.5s ease';
+
+    const letters = ['A', 'B', 'C'];
+    grid.innerHTML = '';
+    grid.style.animation = 'none';
+    grid.offsetHeight;
+    grid.style.animation = 'fadeIn 0.5s ease 0.1s both';
+
+    // Shuffle answers
+    const shuffled = [...q.answers];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    shuffled.forEach((answer, i) => {
+      const card = document.createElement('div');
+      card.className = 'answer-card';
+      card.innerHTML = `
+        <div class="answer-letter">${letters[i]}</div>
+        <div class="answer-text">${answer.text}</div>
+      `;
+      card.addEventListener('click', () => selectAnswer(card, answer.type));
+      grid.appendChild(card);
+    });
+  }
+
+  function selectAnswer(card, type) {
+    // Prevent double-click
+    const grid = card.closest('.answers-grid');
+    if (grid.classList.contains('locked')) return;
+    grid.classList.add('locked');
+
+    document.querySelectorAll('.answer-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    scores[type]++;
+
+    setTimeout(() => {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        renderQuestion();
+      } else {
+        document.getElementById('progress-fill').style.width = '100%';
+        setTimeout(() => showResult(), 400);
+      }
+    }, 500);
+  }
+
+  /* ===== SHOW RESULT ===== */
+  function showResult() {
+    // Determine winner
+    const totalAnswers = questions.length;
+    let maxScore = 0;
+    let winner = 'pechorin';
+    for (const [key, val] of Object.entries(scores)) {
+      if (val > maxScore) {
+        maxScore = val;
+        winner = key;
+      }
+    }
+
+    const r = results[winner];
+
+    // Fill result card
+    document.getElementById('result-emoji').textContent = r.emoji;
+    document.getElementById('result-type').textContent = r.type;
+    document.getElementById('result-character').textContent = r.character;
+    document.getElementById('result-description').textContent = r.description;
+
+    const traitsContainer = document.getElementById('result-traits');
+    traitsContainer.innerHTML = r.traits.map(t => `<span class="trait-tag">${t}</span>`).join('');
+
+    document.getElementById('result-quote').innerHTML = `
+      ${r.quote}
+      <span class="result-source">— ${r.source}</span>
+    `;
+
+    // Build percentage bars
+    const barsContainer = document.getElementById('percent-bars');
+    barsContainer.innerHTML = '';
+
+    // Sort: winner first, then descending
+    const sorted = Object.entries(scores).sort((a, b) => {
+      if (a[0] === winner) return -1;
+      if (b[0] === winner) return 1;
+      return b[1] - a[1];
+    });
+
+    sorted.forEach(([key, val]) => {
+      const pct = totalAnswers > 0 ? Math.round((val / totalAnswers) * 100) : 0;
+      const info = typeInfo[key];
+      const isWinner = key === winner;
+
+      const row = document.createElement('div');
+      row.className = 'percent-row' + (isWinner ? ' is-winner' : '');
+      row.innerHTML = `
+        <div class="percent-emoji">${info.emoji}</div>
+        <div class="percent-info">
+          <div class="percent-header">
+            <span class="percent-name">${info.name}</span>
+            <span class="percent-value">${pct}%</span>
+          </div>
+          <div class="percent-bar-bg">
+            <div class="percent-bar-fill ${info.colorClass}" data-width="${pct}"></div>
+          </div>
+        </div>
+      `;
+      barsContainer.appendChild(row);
+    });
+
+    previousScreen = 'screen-result';
+    showScreen('screen-result');
+
+    // Animate bars after a short delay
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('.percent-bar-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }, 300);
+    });
+
+    launchConfetti();
+  }
+
+  /* ===== RESTART ===== */
+  function restartQuiz() {
+    startQuiz();
+  }
+
+  /* ===== ABOUT ===== */
+  function showAbout() {
+    previousScreen = 'screen-result';
+    showScreen('screen-about');
+  }
+
+  function goBack() {
+    showScreen(previousScreen);
+  }
+
+  /* ===== CONFETTI ===== */
+  function launchConfetti() {
+    const container = document.getElementById('confetti');
+    container.innerHTML = '';
+    const colors = ['#6366f1', '#a855f7', '#ec4899', '#06b6d4', '#f59e0b', '#22c55e'];
+
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + '%';
+      piece.style.top = '-10px';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.width = (6 + Math.random() * 8) + 'px';
+      piece.style.height = (6 + Math.random() * 8) + 'px';
+      piece.style.animationDuration = (2 + Math.random() * 3) + 's';
+      piece.style.animationDelay = (Math.random() * 1.5) + 's';
+      if (Math.random() > 0.5) piece.style.borderRadius = '50%';
+      container.appendChild(piece);
+    }
+
+    setTimeout(() => { container.innerHTML = ''; }, 5000);
+  }
+</script>
+
+</body>
+</html>
